@@ -12,7 +12,7 @@ setup(name='whaler',
     install_requires = [''],
     entry_points = {
         'console_scripts': [
-            'whaler = my_project.__main__:main'
+            'whaler = whaler.__main__:main'
         ]
     },
     )

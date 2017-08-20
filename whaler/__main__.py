@@ -3,7 +3,7 @@ Main routine of whaler.
 """
 
 import sys
-import config
+from whaler import config
 
 def main(args=None):
     
