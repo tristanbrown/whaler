@@ -2,7 +2,7 @@
  
 """
 
-np.set_printoptions(suppress=True)
+import os
 
 class Analysis():
     """
@@ -10,4 +10,5 @@ class Analysis():
     def __init__(self):
         pass
         
-    
+    def groundstates(self):
+        os.listdir()
