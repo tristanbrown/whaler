@@ -18,7 +18,7 @@ def main(args=None):
     if len(args) == 0:
         print("No arguments passed.")
     elif 'gs' in args:
-        A.groundstates()
+        A.groundstates_all()
     
     
 if __name__ == "__main__":
