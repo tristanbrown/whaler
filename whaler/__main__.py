@@ -11,10 +11,9 @@ def main(args=None):
     
     if args is None:
         args = sys.argv[1:]
- 
-    out_name = 'results.csv' #check argparse
     
-    # Analyze the data and write the results.
+    if len(args) == 0:
+        print("No arguments passed.")
     
     
 if __name__ == "__main__":
