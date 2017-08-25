@@ -19,6 +19,12 @@ class IO():
         else:
             print("%s does not yet exist." % self.fn)
     
+    def appendline(self, line):
+        """Useful for writing log files.
+        """
+        with open(self.fn, 'a') as f:
+            f.write(line + '\n')
+    
     def load_array_with_labels(self, delim=',', datatype='int',
                                     coltype='str', rowtype='str'):
         """Used for extracting data from text files with row and column labels.

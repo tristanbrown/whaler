@@ -12,6 +12,7 @@ class Analysis():
     def __init__(self):
         self.loc = os.getcwd()
         self.structs = next(os.walk('.'))[1]
+        self.logfile = IO('whaler.log', self.loc)
         
     def groundstates_all(self, outname="groundstates.csv"):
         """Compares the energies of each calculated spin state for a structure
@@ -45,11 +46,26 @@ class Analysis():
     def isfiletype(self, file, path, suffix):
         """
         """
-        return file.endswith(suffix) and self.isconverged(file, path)
+        return file.endswith(suffix) and self.isvalid(file, path)
     
-    def isconverged(self, file, path):
+    def isvalid(self, file, path):
         """
         """
         reader = IO(file, path)
-        print(reader.tail(4))
-        return True
+        end = reader.tail(2)
+        if 'ABORTING THE RUN\n' in end:
+            self.logfile.appendline(file + ' aborted abnormally.')
+            return False
+        elif 'ORCA TERMINATED NORMALLY' in end[0]:
+            return True
+        else:
+            self.logfile.appendline(file + ' has unknown structure.')
+            return False
+    
+    def getcalctype(self, file):
+        """Takes a chemical computation file and gives the calc type labels, 
+        based on the filename formulation: xxxxxxx_NSyyy.log, where x chars
+        refer to the structure name, N is the iteration number, S is the spin
+        state label, and yyy is the optimization type. 
+        """
+        return ''
