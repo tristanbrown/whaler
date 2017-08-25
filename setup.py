@@ -9,7 +9,7 @@ setup(name='whaler',
     url = 'https://github.com/tristanbrown/whaler',
     license = "MIT",
     packages = find_packages(),
-    install_requires = [''],
+    install_requires = ['numpy'],
     entry_points = {
         'console_scripts': [
             'whaler = whaler.__main__:main'

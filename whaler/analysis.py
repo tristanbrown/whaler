@@ -3,20 +3,30 @@
 """
 
 import os
+from whaler.dataprep import IO
 
 class Analysis():
     """
     """
     def __init__(self):
-        pass
+        self.loc = os.getcwd()
+        self.structs = next(os.walk('.'))[1]
+        print(self.loc)
+        print(self.structs)
         
     def groundstates_all(self):
-        loc = os.getcwd()
-        print(loc)
-        structs = [x[0] for x in os.walk(loc)]
-        print(structs)
-        structs2 = next(os.walk('.'))[1]
-        print(structs2)
+        """Compares the energies of each calculated spin state for a structure
+        and writes the energy differences as a table."""
         
-    def groundstate(self, structure):
-        pass
+        results = [self.spinstates(struct) for struct in self.structs]
+        
+        # write table as groundstates.out file. 
+        
+    def spinstates(self, structure):
+        """For a given structure, identifies all of the files optimizing 
+        geometries in different spin states. Verifies convergence, and then
+        finds the final single-point energy for each file. Returns an array of 
+        energies of the various spin states.
+        Possibilities: S T P D Q (for S = 0, 1, 2, 1/2, 3/2)
+        """
+        
