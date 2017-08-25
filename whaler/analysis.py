@@ -12,8 +12,6 @@ class Analysis():
     def __init__(self):
         self.loc = os.getcwd()
         self.structs = next(os.walk('.'))[1]
-        print(self.loc)
-        print(self.structs)
         
     def groundstates_all(self, outname="groundstates.csv"):
         """Compares the energies of each calculated spin state for a structure
@@ -37,4 +35,21 @@ class Analysis():
         energies of the various spin states.
         Possibilities: S T P D Q (for S = 0, 1, 2, 1/2, 3/2)
         """
-        
+        path = os.path.join(self.loc, structure)
+        geologs = list(filter(
+                        lambda file: self.isfiletype(file, path, "geo.log"),
+                        os.listdir(path)
+                        ))
+        print(geologs)
+    
+    def isfiletype(self, file, path, suffix):
+        """
+        """
+        return file.endswith(suffix) and self.isconverged(file, path)
+    
+    def isconverged(self, file, path):
+        """
+        """
+        reader = IO(file, path)
+        print(reader.tail(4))
+        return True
