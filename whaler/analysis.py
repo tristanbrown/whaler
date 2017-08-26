@@ -4,6 +4,7 @@
 import time
 import os
 import numpy as np
+import pandas as pd
 from whaler.dataprep import IO
 
 class Analysis():
@@ -19,15 +20,22 @@ class Analysis():
         and writes the energy differences as a table."""
         
         results = [self.spinstates(struct) for struct in self.structs]
-        columns = [] #turn list of rows into list of columns
+        print(results)
         
-        # write table as groundstates.out file. 
-        writer = IO(outname, self.loc)
+        # columns = results.T #turn list of rows into list of columns
+        # print(np.insert(columns, 0, self.structs))
+        
+        # # write table as groundstates.out file. 
+        # writer = IO(outname, self.loc)
         
         
-        headers = np.array(['Structures', 'S', 'T', 'P', 'D', 'Q'])
+        headers = np.array(['S', 'T', 'P', 'D', 'Q'])
+        df = pd.DataFrame(data=results, index=self.structs, columns=headers)
+        print(df)
+        df.to_csv(os.path.join(self.loc, outname))
         
-        writer.tabulate_data(columns, headers, 'Structures')
+        
+        # writer.tabulate_data(columns, headers, 'Structures')
         
     def spinstates(self, structure):
         """For a given structure, identifies all of the files optimizing 
@@ -44,23 +52,30 @@ class Analysis():
                         lambda file: file.endswith("geo.log"),
                         files
                         ))
-        print(geologs)
         
         # Unpacks filetypes.
         ftypes = {file:self.getcalctype(file) for file in geologs}
         
         print(ftypes)
-        
-        iter, state, type = (zip(*ftypes.values()))
-        
-        # Removes invalid and outdated files, marking the log. 
-        curriter = max(iter)
+        try:
+            iter, state, type = (zip(*ftypes.values()))
+            # Removes invalid and outdated files, marking the log. 
+            curriter = max(iter)
 
-        stateEs = {
-            v[1]:self.finalE(k, path) for (k,v) in ftypes.items() 
-            if v[0] == curriter and self.isvalid(k,path)}
+            stateEs = {
+                v[1]:self.finalE(k, path) for (k,v) in ftypes.items() 
+                if v[0] == curriter and self.isvalid(k,path)}
+                
+            print(stateEs)
+        except ValueError:
+            stateEs = {}
             
-        print(stateEs)
+        # Define States and return full array of energies of states.
+        states = ['S', 'T', 'P', 'D', 'Q']
+        return [
+            stateEs[s] if s in stateEs.keys() else np.nan for s in states]
+        
+        
     
     def getcalctype(self, file):
         """Takes a chemical computation file and gives the calc type labels, 
