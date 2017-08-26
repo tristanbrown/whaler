@@ -1,7 +1,7 @@
 """
  
 """
-
+import time
 import os
 import numpy as np
 from whaler.dataprep import IO
@@ -46,25 +46,20 @@ class Analysis():
                         ))
         print(geologs)
         
-        # Unpacks filetypes and checks that the highest iteration is examined.
+        # Unpacks filetypes.
         ftypes = {file:self.getcalctype(file) for file in geologs}
         
         print(ftypes)
         
         iter, state, type = (zip(*ftypes.values()))
         
+        # Removes invalid and outdated files, marking the log. 
         curriter = max(iter)
-        currfiles = {k:v for (k,v) in ftypes.items() if v[0] == curriter}
-        
-        print(currfiles)
-        
-        # Removes invalid files, marking the log. 
-        validlogs = {
-            k:v for (k,v) in currfiles.items() if self.isvalid(k, path)}
-        
-        print(validlogs)
-        
-        stateEs = {v[1]:self.finalE(k, path) for (k,v) in validlogs.items()}
+
+        stateEs = {
+            v[1]:self.finalE(k, path) for (k,v) in ftypes.items() 
+            if v[0] == curriter and self.isvalid(k,path)}
+            
         print(stateEs)
     
     def getcalctype(self, file):
