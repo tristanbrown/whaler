@@ -37,16 +37,46 @@ class Analysis():
         Possibilities: S T P D Q (for S = 0, 1, 2, 1/2, 3/2)
         """
         path = os.path.join(self.loc, structure)
+        files = os.listdir(path) # Starting file list. 
+        
+        # Narrows it down to geo.log files.
         geologs = list(filter(
-                        lambda file: self.isfiletype(file, path, "geo.log"),
-                        os.listdir(path)
+                        lambda file: file.endswith("geo.log"),
+                        files
                         ))
         print(geologs)
+        
+        
+        
+        # Unpacks filetypes and checks that the highest iteration is examined.
+        ftypes = {file:self.getcalctype(file) for file in geologs}
+        
+        print(ftypes)
+        
+        iter, state, type = (zip(*ftypes.values()))
+        
+        curriter = max(iter)
+        currfiles = {k:v for (k,v) in ftypes.items() if v[0] == curriter}
+        
+        print(currfiles)
+        
+        # Removes invalid files, marking the log. 
+        validlogs = {
+            k:v for (k,v) in currfiles.items() if self.isvalid(k, path)}
+        
+        print(validlogs)
     
-    def isfiletype(self, file, path, suffix):
+    def getcalctype(self, file):
+        """Takes a chemical computation file and gives the calc type labels, 
+        based on the filename formulation: xxxxxxx_NSyyy.log, where x chars
+        refer to the structure name, N is the iteration number, S is the spin
+        state label, and yyy is the optimization type. 
         """
-        """
-        return file.endswith(suffix) and self.isvalid(file, path)
+        labels = file.split('_')[-1]
+        iter = int(labels[0])
+        state = labels[1]
+        type = labels.split('.')[0][2:]
+        return (iter, state, type)
     
     def isvalid(self, file, path):
         """
@@ -57,15 +87,25 @@ class Analysis():
             self.logfile.appendline(file + ' aborted abnormally.')
             return False
         elif 'ORCA TERMINATED NORMALLY' in end[0]:
-            return True
+            return self.isconverged(file, path)
         else:
             self.logfile.appendline(file + ' has unknown structure.')
             return False
     
-    def getcalctype(self, file):
-        """Takes a chemical computation file and gives the calc type labels, 
-        based on the filename formulation: xxxxxxx_NSyyy.log, where x chars
-        refer to the structure name, N is the iteration number, S is the spin
-        state label, and yyy is the optimization type. 
+    def isconverged(self, file, path, chunk=100):
         """
-        return ''
+        """
+        reader = IO(file, path)
+        tail = reader.tail(chunk)
+        if chunk > 1000:
+            self.logfile.appendline(file + ' has unknown structure.')
+            return False
+        elif 'WARNING!!!!!!!\n' in tail:
+            self.logfile.appendline(file + ' has not converged.')
+            return False
+        elif '*** OPTIMIZATION RUN DONE ***' in ''.join(tail):
+            return True
+        else:
+            self.converged(file, path, chunk+100)
+        
+        
