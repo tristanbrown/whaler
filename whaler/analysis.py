@@ -19,19 +19,16 @@ class Analysis():
         """Compares the energies of each calculated spin state for a structure
         and writes the energy differences as a table."""
         
+        # Collect state energies from files. 
         results = [self.spinstates(struct) for struct in self.structs]
         print(results)
         
-        # columns = results.T #turn list of rows into list of columns
-        # print(np.insert(columns, 0, self.structs))
-        
-        # # write table as groundstates.out file. 
-        # writer = IO(outname, self.loc)
-        
-        
+        # Construct dataframe. 
         headers = np.array(['S', 'T', 'P', 'D', 'Q'])
         df = pd.DataFrame(data=results, index=self.structs, columns=headers)
         print(df)
+        
+        
         df.to_csv(os.path.join(self.loc, outname))
         
         
