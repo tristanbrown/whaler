@@ -46,8 +46,6 @@ class Analysis():
                         ))
         print(geologs)
         
-        
-        
         # Unpacks filetypes and checks that the highest iteration is examined.
         ftypes = {file:self.getcalctype(file) for file in geologs}
         
@@ -65,6 +63,9 @@ class Analysis():
             k:v for (k,v) in currfiles.items() if self.isvalid(k, path)}
         
         print(validlogs)
+        
+        stateEs = {v[1]:self.finalE(k, path) for (k,v) in validlogs.items()}
+        print(stateEs)
     
     def getcalctype(self, file):
         """Takes a chemical computation file and gives the calc type labels, 
@@ -108,4 +109,17 @@ class Analysis():
         else:
             self.converged(file, path, chunk+100)
         
-        
+    def finalE(self, file, path, chunk=100):
+        """Extracts the final Single Point Energy from a .log file. 
+        """
+        reader = IO(file, path)
+        tail = reader.tail(chunk)
+        marker = 'FINAL SINGLE POINT ENERGY'
+        energyline = [s for s in tail if marker in s]
+        if chunk > 1000:
+            self.logfile.appendline(file + ': cannot find final energy.')
+            return np.nan
+        elif energyline == []:
+            return self.finalE(file, path, chunk+100)
+        else:
+            return float(energyline[-1].split()[-1])

@@ -15,7 +15,8 @@ class IO():
         self.fn = os.path.join(dir, filename)
 
         if os.path.exists(self.fn):
-            print("%s found." % self.fn)
+            #print("%s found." % self.fn)
+            pass
         else:
             print("%s does not yet exist." % self.fn)
     
