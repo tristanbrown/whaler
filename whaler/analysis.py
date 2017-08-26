@@ -27,7 +27,7 @@ class Analysis():
         headers = np.array(['S', 'T', 'P', 'D', 'Q'])
         df = pd.DataFrame(data=results, index=self.structs, columns=headers)
         print(df)
-        
+        print(df.subtract(df.min(1), axis=0))
         
         df.to_csv(os.path.join(self.loc, outname))
         
@@ -53,7 +53,6 @@ class Analysis():
         # Unpacks filetypes.
         ftypes = {file:self.getcalctype(file) for file in geologs}
         
-        print(ftypes)
         try:
             iter, state, type = (zip(*ftypes.values()))
             # Removes invalid and outdated files, marking the log. 
@@ -63,7 +62,6 @@ class Analysis():
                 v[1]:self.finalE(k, path) for (k,v) in ftypes.items() 
                 if v[0] == curriter and self.isvalid(k,path)}
                 
-            print(stateEs)
         except ValueError:
             stateEs = {}
             
