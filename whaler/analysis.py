@@ -27,9 +27,9 @@ class Analysis():
         headers = np.array(['S', 'T', 'P', 'D', 'Q'])
         df = pd.DataFrame(data=results, index=self.structs, columns=headers)
         print(df)
-        print(df.subtract(df.min(1), axis=0))
+        relvals = df.subtract(df.min(1), axis=0)
         
-        df.to_csv(os.path.join(self.loc, outname))
+        relvals.to_csv(os.path.join(self.loc, outname))
         
         
         # writer.tabulate_data(columns, headers, 'Structures')
