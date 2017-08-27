@@ -15,7 +15,8 @@ class Analysis():
         self.structs = next(os.walk('.'))[1]
         self.logfile = IO('whaler.log', self.loc)
         
-    def groundstates_all(self, outname="groundstates.csv"):
+    def groundstates_all(self, outname="groundstate_Es.csv", 
+                            diffname="groundstate_relEs.csv"):
         """Compares the energies of each calculated spin state for a structure
         and writes the energy differences as a table."""
         
@@ -25,11 +26,15 @@ class Analysis():
         
         # Construct dataframe. 
         headers = np.array(['S', 'T', 'P', 'D', 'Q'])
-        df = pd.DataFrame(data=results, index=self.structs, columns=headers)
-        print(df)
-        relvals = df.subtract(df.min(1), axis=0)
+        self.gEs = (
+            pd.DataFrame(data=results, index=self.structs, columns=headers))
+        print(self.gEs)
+        relvals = self.gEs.subtract(self.gEs.min(1), axis=0)
+        self.gEs['Ground State'] = self.gEs.idxmin(axis=1)
         
-        relvals.to_csv(os.path.join(self.loc, outname))
+        # Write the data.
+        self.gEs.to_csv(os.path.join(self.loc, outname))
+        relvals.to_csv(os.path.join(self.loc, diffname))
         
         
         # writer.tabulate_data(columns, headers, 'Structures')
