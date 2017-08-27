@@ -15,8 +15,7 @@ class Analysis():
         self.structs = next(os.walk('.'))[1]
         self.logfile = IO('whaler.log', self.loc)
         
-    def groundstates_all(self, outname="groundstate_Es.csv", 
-                            diffname="groundstate_relEs.csv"):
+    def groundstates_all(self):
         """Compares the energies of each calculated spin state for a structure
         and writes the energy differences as a table."""
         
@@ -29,16 +28,21 @@ class Analysis():
         self.gEs = (
             pd.DataFrame(data=results, index=self.structs, columns=headers))
         print(self.gEs)
-        relvals = self.gEs.subtract(self.gEs.min(1), axis=0)
+        self.relgEs = self.gEs.subtract(self.gEs.min(1), axis=0)
         self.gEs['Ground State'] = self.gEs.idxmin(axis=1)
+        self.relgEs['Ground State'] = self.gEs['Ground State']
         
-        # Write the data.
+    def write_gsEs(self, outname="groundstate_Es.csv", 
+                            diffname="groundstate_relEs.csv"):
+        # Write the ground state data.
         self.gEs.to_csv(os.path.join(self.loc, outname))
-        relvals.to_csv(os.path.join(self.loc, diffname))
+        self.relgEs.to_csv(os.path.join(self.loc, diffname))
         
-        
-        # writer.tabulate_data(columns, headers, 'Structures')
-        
+    def write_freqinp(self, template="freqsample.inp"):
+        """
+        """
+        return []
+    
     def spinstates(self, structure):
         """For a given structure, identifies all of the files optimizing 
         geometries in different spin states. Verifies convergence, and then

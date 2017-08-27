@@ -19,7 +19,9 @@ def main(args=None):
         print("No arguments passed.")
     elif 'gs' in args:
         A.groundstates_all()
-    
+        A.write_gsEs()
+    elif 'freqinp' in args:
+        A.write_freqinp()
     
 if __name__ == "__main__":
     main()
