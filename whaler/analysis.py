@@ -14,6 +14,7 @@ class Analysis():
         self.loc = os.getcwd()
         self.structs = next(os.walk('.'))[1]
         self.logfile = IO('whaler.log', self.loc)
+        self.states = ['S', 'T', 'P', 'D', 'Q']
         
     def groundstates_all(self):
         """Compares the energies of each calculated spin state for a structure
@@ -21,13 +22,12 @@ class Analysis():
         
         # Collect state energies from files. 
         results = [self.spinstates(struct) for struct in self.structs]
-        print(results)
         
         # Construct dataframe. 
-        headers = np.array(['S', 'T', 'P', 'D', 'Q'])
+        headers = np.array(self.states)
         self.gEs = (
             pd.DataFrame(data=results, index=self.structs, columns=headers))
-        print(self.gEs)
+        
         self.relgEs = self.gEs.subtract(self.gEs.min(1), axis=0)
         self.gEs['Ground State'] = self.gEs.idxmin(axis=1)
         self.relgEs['Ground State'] = self.gEs['Ground State']
@@ -38,10 +38,7 @@ class Analysis():
         self.gEs.to_csv(os.path.join(self.loc, outname))
         self.relgEs.to_csv(os.path.join(self.loc, diffname))
         
-    def write_freqinp(self, template="freqsample.inp"):
-        """
-        """
-        return []
+    
     
     def spinstates(self, structure):
         """For a given structure, identifies all of the files optimizing 
@@ -75,11 +72,36 @@ class Analysis():
             stateEs = {}
             
         # Define States and return full array of energies of states.
-        states = ['S', 'T', 'P', 'D', 'Q']
         return [
-            stateEs[s] if s in stateEs.keys() else np.nan for s in states]
+            stateEs[s] if s in stateEs.keys()
+                else np.nan for s in self.states]
+        
+    def write_freqinp_all(self, template="freqsample.inp"):
+        """
+        """
+        # Make sure self.gEs exists.
+        try: 
+            self.gEs
+        except:
+            try:
+                self.gEs = pd.read_csv(
+                            os.path.join(self.loc, "groundstate_Es.csv"),
+                            index_col=0)
+            except:
+                print("Calculating ground spin states.")
+                self.groundstates_all()
+        
+        for struct in self.structs:
+            state = self.gEs.loc[struct,'Ground State']
+            if state in self.states:
+                self.write_freqinp(struct, template, state)
+        
+    def write_freqinp(self, struct, template, state):
+        """
+        """
         
         
+        print(struct, state)
     
     def getcalctype(self, file):
         """Takes a chemical computation file and gives the calc type labels, 

@@ -21,7 +21,7 @@ def main(args=None):
         A.groundstates_all()
         A.write_gsEs()
     elif 'freqinp' in args:
-        A.write_freqinp()
+        A.write_freqinp_all()
     
 if __name__ == "__main__":
     main()
