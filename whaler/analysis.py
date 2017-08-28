@@ -15,6 +15,9 @@ class Analysis():
         self.structs = next(os.walk('.'))[1]
         self.logfile = IO('whaler.log', self.loc)
         self.states = ['S', 'T', 'P', 'D', 'Q']
+        elnums = [1, 3, 5, 2, 4]
+        self.statekey = {
+            self.states[i]:elnums[i] for i in range(len(elnums))}
         
     def groundstates_all(self):
         """Compares the energies of each calculated spin state for a structure
@@ -93,42 +96,59 @@ class Analysis():
             if state in self.states:
                 self.write_freqinp(struct, template, state)
         
-    def write_freqinp(self, struct, template, state):
+    def write_inp(self, struct, template, state, coords, filename, gbw=None):
         """
         """
         path = os.path.join(self.loc, struct)
         
-        # Get the xyz coordinates for the input file. 
-        coords = self.get_xyz(struct, state)
-        print(coords)
-        
         # Choose the state number. 
+        statenum = self.statekey[state]
         
-        # Find the right .gbw file to MOREAD. 
+        # Read the template.
+        reader = IO(template, self.loc)
+        fulltemplate = reader.lines()
+        print(fulltemplate)
         
-        # Plug values into the template
+        # Plug values into the template.
         
         # Write the input file. 
+        print("Writing " + filename + ".")
+    
+    def write_freqinp(self, struct, template, state):
+        """
+        """
+        # Get the xyz coordinates for the input file. 
+        xyzfile, coords = self.get_xyz(struct, state, state + "geo")
+        print(xyzfile)
+        print(coords)
         
+        # Make the filename.
+        filename = xyzfile.split("geo")[0] + "freq.inp"
+        print(filename)
         
+        # Find the gbw file.
+        gbw = xyzfile.split(".")[0] + ".gbw"
+        print(gbw)
         
-    def get_xyz(self, struct, state):
+        # Write the freq file.
+        if coords != []:
+            self.write_inp(struct, template, state, coords, filename, gbw)
+        
+    def get_xyz(self, struct, state, type="start"):
         """
         """
         path = os.path.join(self.loc, struct)
         dir = IO(dir=path)
         
         # Filter down to the appropriate .xyz file. 
-        xyzfile = sorted(dir.files_end_with(state + "geo.xyz"))[-1]
-        print(struct, state)
-        print(xyzfile)
+        xyzfile = sorted(dir.files_end_with(type + ".xyz"))[-1]
         
         # Check if the .xyz file has been aligned. 
         if self.xyz_aligned(xyzfile, path):
             reader = IO(xyzfile, path)
-            return reader.lines()[2:]
+            return (xyzfile, reader.lines()[2:])
         else:
-            return []
+            return (xyzfile, [])
     
     def xyz_aligned(self, filename, dir):
         """
