@@ -48,13 +48,10 @@ class Analysis():
         Possibilities: S T P D Q (for S = 0, 1, 2, 1/2, 3/2)
         """
         path = os.path.join(self.loc, structure)
-        files = os.listdir(path) # Starting file list. 
+        dir = IO(dir=path)
         
         # Narrows it down to geo.log files.
-        geologs = list(filter(
-                        lambda file: file.endswith("geo.log"),
-                        files
-                        ))
+        geologs = dir.files_end_with("geo.log")
         
         # Unpacks filetypes.
         ftypes = {file:self.getcalctype(file) for file in geologs}
@@ -99,9 +96,58 @@ class Analysis():
     def write_freqinp(self, struct, template, state):
         """
         """
+        path = os.path.join(self.loc, struct)
+        
+        # Get the xyz coordinates for the input file. 
+        coords = self.get_xyz(struct, state)
+        print(coords)
+        
+        # Choose the state number. 
+        
+        # Find the right .gbw file to MOREAD. 
+        
+        # Plug values into the template
+        
+        # Write the input file. 
         
         
+        
+    def get_xyz(self, struct, state):
+        """
+        """
+        path = os.path.join(self.loc, struct)
+        dir = IO(dir=path)
+        
+        # Filter down to the appropriate .xyz file. 
+        xyzfile = sorted(dir.files_end_with(state + "geo.xyz"))[-1]
         print(struct, state)
+        print(xyzfile)
+        
+        # Check if the .xyz file has been aligned. 
+        if self.xyz_aligned(xyzfile, path):
+            reader = IO(xyzfile, path)
+            return reader.lines()[2:]
+        else:
+            return []
+    
+    def xyz_aligned(self, filename, dir):
+        """
+        """
+        reader = IO(filename, dir)
+        xyzhead = reader.head(3)
+        if 'Coordinates' in xyzhead[1]:
+            message = filename + ' needs alignment.'
+            print(message)
+            self.logfile.appendline(message)
+            return False
+        elif len(xyzhead[2]) == 49:
+            return True
+        else:
+            message = filename + ' has unknown structure.'
+            print(message)
+            self.logfile.appendline(message)
+            return False
+        
     
     def getcalctype(self, file):
         """Takes a chemical computation file and gives the calc type labels, 

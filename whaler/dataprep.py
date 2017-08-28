@@ -11,7 +11,7 @@ class IO():
     """An object that points to a desired file location and either extracts data
     from an existing text file, or writes data to a text file. 
     """
-    def __init__(self, filename, dir=''):
+    def __init__(self, filename='', dir=''):
         self.fn = os.path.join(dir, filename)
 
         if os.path.exists(self.fn):
@@ -25,6 +25,14 @@ class IO():
         """
         with open(self.fn, 'a') as f:
             f.write(line + '\n')
+    
+    def files_end_with(self, suffix):
+        """Returns a list of files ending with the given suffix.
+        """
+        return list(filter(
+                        lambda file: file.endswith(suffix),
+                        os.listdir(self.fn)
+                        ))
     
     def load_array_with_labels(self, delim=',', datatype='int',
                                     coltype='str', rowtype='str'):
@@ -113,3 +121,14 @@ class IO():
 
         return lines_found[-lines:]
     
+    def head(self, lines=1):
+        """Head a file and get X lines from the beginning"""
+        with open(self.fn) as f:
+            head = [next(f) for x in range(lines)]
+        return head
+    
+    def lines(self):
+        """Gives all lines from a file as a list"""
+        with open(self.fn) as f:
+            lines = f.read().splitlines()
+        return list(lines)
