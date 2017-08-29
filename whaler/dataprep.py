@@ -132,3 +132,23 @@ class IO():
         with open(self.fn) as f:
             lines = f.read().splitlines()
         return list(lines)
+    
+    def replace_vals(self, starttxt, endtxt, outfile):
+        """Replaces all instances of starttxt with endtxt, printing the file as
+        outfile.
+        """
+        with open(self.fn, "rt") as fin:
+            with open(outfile, "wt") as fout:
+                for line in fin:
+                    fout.write(line.replace(starttxt, endtxt))
+    
+    def replace_all_vals(self, keydict, outfile):
+        """Same as replace_vals, but takes a dictionary of old:new text 
+        replacements as the key.
+        """
+        with open(self.fn, "rt") as fin:
+            with open(outfile, "wt") as fout:
+                for line in fin:
+                    for old, new in keydict.items():
+                        line = line.replace(old, new)
+                    fout.write(line)

@@ -100,19 +100,35 @@ class Analysis():
         """
         """
         path = os.path.join(self.loc, struct)
+        outfile = os.path.join(path, filename)
         
         # Choose the state number. 
         statenum = self.statekey[state]
         
-        # Read the template.
-        reader = IO(template, self.loc)
-        fulltemplate = reader.lines()
-        print(fulltemplate)
+        # Read the template. Plug values into the template.
+        if os.path.exists(outfile.split('.')[0] + ".xyz"):
+            message = ("Skipping %s"
+                        " because it has already been used in a calculation."
+                        % filename)
+            
+        else:
+            reader = IO(template, self.loc)
+            
+            replacekey = {
+                            "[struct]":struct,
+                            "[spin]":str(statenum),
+                            "[coords]":"\n".join(coords)}
+            if gbw is None:
+                replacekey["MOREAD"] = "#MOREAD"
+                replacekey["%moinp"] = "# %moinp"
+            else:
+                replacekey["[gbw]"] = gbw
+            
+            reader.replace_all_vals(replacekey, outfile)
+            message = "Wrote " + filename + "."
         
-        # Plug values into the template.
-        
-        # Write the input file. 
-        print("Writing " + filename + ".")
+        print(message)
+        self.logfile.appendline(message)
     
     def write_freqinp(self, struct, template, state):
         """
