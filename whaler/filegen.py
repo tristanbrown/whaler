@@ -18,7 +18,7 @@ class Generator():
         
         # Set the variables given by the guide. 
         self.dirs = self.give_dirs(guide.dirs)
-        print(self.dirs)
+        
         try:
             self.multi = guide.multi_repl
         except:
@@ -38,11 +38,21 @@ class Generator():
         """
         if self.multi != None:
             print("Running multi-replacement script.")
+            self.multi_repl(self.multi)
         elif self.dirkey != None:
             print("Running individual replacements.")
             self.ind_repl(self.dirkey, self.filekey, self.txtkey)
         else:
             print("Guide file is broken. Please check.")
+    
+    def multi_repl(self, multikey):
+        """Do ind_repl, using each key:list pair in multikey to generate 
+        replacement keys at the directory, filename, and filetext levels. 
+        """
+        for start,endlist in multikey.items():
+            for end in endlist:
+                key = {start : end}
+                self.ind_repl(key, key, key)
     
     def ind_repl(self, dirkey, filekey, txtkey):
         """Performs all of the replacements given in the guide file.
