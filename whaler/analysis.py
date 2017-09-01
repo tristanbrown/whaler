@@ -21,6 +21,7 @@ class Analysis():
         
         # Analysis output filenames. 
         self.gs_out = "groundstate_Es.csv"
+        self.crude_out = "cruderxn_Es.csv"
         
     def groundstates_all(self):
         """Compares the energies of each calculated spin state for a structure
@@ -39,17 +40,28 @@ class Analysis():
         
         return gEs
         
-    def write_gsEs(self):
-        # Write the ground state data.
+    def write_data(self, type):
+        # Choose the data type and output location. 
+        
+        if type == "gs":
+            out = self.gs_out
+            data = self.gEs
+            message = "optimization energies and ground states"
+        elif type == "cruderxn":
+            out = self.crude_out
+            data = self.crude_rxn_Es()
+            message = "crude reaction energies"
+        else:
+            raise
+        
+        # Write the data.
         try:
-            os.remove(os.path.join(self.loc, self.gs_out))
-            print("Overwriting %s." % self.gs_out)
+            os.remove(os.path.join(self.loc, out))
+            print("Overwriting %s." % out)
         except:
             pass
-        self.gEs.to_csv(os.path.join(self.loc, self.gs_out))
-        print(
-            "Wrote optimization energies and ground states to %s."
-            % self.gs_out)
+        data.to_csv(os.path.join(self.loc, out))
+        print("Wrote {0} to {1}.".format(message, out))
     
     @property
     def gEs(self):
@@ -58,13 +70,13 @@ class Analysis():
         """
         try:
             return self._gEs
-        except:
+        except AttributeError:
             try:
                 self._gEs = pd.read_csv(
                             os.path.join(self.loc, self.gs_out),
                             index_col=0)
                 print("Reading ground spin states from %s." % self.gs_out)
-            except:
+            except OSError:
                 self._gEs = self.groundstates_all()
             return self._gEs
         
@@ -72,7 +84,39 @@ class Analysis():
         """Subtracts the crude (geo) energy of each M2(L)4 structure from the 
         corresponding M2(L)4N and M2(L)4N2 structures, tabulating the results.
         """
-        return []
+        # Make a dictionary of all structures with ground state energies. 
+        short_gEs = self.gEs.dropna(axis=0, how='all')
+        print(short_gEs)
+        struct_Es = {
+            struct : short_gEs.loc[struct][:-1].min()
+            for struct in short_gEs.index}
+        print(struct_Es)
+        
+        # Calculate the energy differences. 
+        structs = []
+        nitride = []
+        nitrogen = []
+        
+        struct_Es['Ru2OO4N'] = -1100 # TESTING ONLY!!! Remove this later
+        for k,v in struct_Es.items():
+            structs.append(k)
+            try:
+                nitride.append(struct_Es[k + 'N'] - v)
+            except:
+                nitride.append(np.nan)
+            try:
+                nitrogen.append(struct_Es[k + 'N2'] - v)
+            except:
+                nitrogen.append(np.nan)
+        
+        # Tabulate the data. 
+        headers = ['Add N', 'Add N2']
+        results = np.array([nitride, nitrogen]).T
+        rxn_Es = pd.DataFrame(data=results, index=structs, columns=headers)
+        rxn_Es = rxn_Es.dropna(axis=0, how='all')
+        
+        print(rxn_Es)
+        return rxn_Es
     
     def spinstates(self, structure):
         """For a given structure, identifies all of the files optimizing 

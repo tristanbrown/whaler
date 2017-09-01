@@ -14,13 +14,16 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
     
-    
+    # Check for requested analysis or file manipulation. 
     
     if len(args) == 0:
         print("No arguments passed.")
     elif 'gs' in args:
         A = analysis.Analysis()
-        A.write_gsEs()
+        A.write_data("gs")
+    elif 'cruderxn' in args:
+        A = analysis.Analysis()
+        A.write_data("cruderxn")
     elif 'freqinp' in args:
         A = analysis.Analysis()
         A.write_inp_all("freq", "freqsample.inp")
