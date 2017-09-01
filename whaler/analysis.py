@@ -76,8 +76,9 @@ class Analysis():
             stateEs[s] if s in stateEs.keys()
                 else np.nan for s in self.states]
         
-    def write_freqinp_all(self, template="freqsample.inp"):
-        """
+    def write_inp_all(self, type, template):
+        """Used for writing input files based on previous calculations that 
+        generate .xyz and .gbw files. 
         """
         # Make sure self.gEs exists.
         try: 
@@ -94,7 +95,7 @@ class Analysis():
         for struct in self.structs:
             state = self.gEs.loc[struct,'Ground State']
             if state in self.states:
-                self.write_freqinp(struct, template, state)
+                self.assemble_inp(struct, template, state, type)
         
     def write_inp(self, struct, template, state, coords, filename, gbw=None):
         """
@@ -106,7 +107,7 @@ class Analysis():
         statenum = self.statekey[state]
         
         # Read the template. Plug values into the template.
-        if os.path.exists(outfile.split('.')[0] + ".xyz"):
+        if os.path.exists(outfile.split('.')[0] + ".gbw"):
             message = ("Skipping %s"
                         " because it has already been used in a calculation."
                         % filename)
@@ -130,23 +131,19 @@ class Analysis():
         print(message)
         self.logfile.appendline(message)
     
-    def write_freqinp(self, struct, template, state):
+    def assemble_inp(self, struct, template, state, type):
         """
         """
         # Get the xyz coordinates for the input file. 
         xyzfile, coords = self.get_xyz(struct, state, state + "geo")
-        print(xyzfile)
-        print(coords)
         
         # Make the filename.
-        filename = xyzfile.split("geo")[0] + "freq.inp"
-        print(filename)
+        filename = xyzfile.split("geo")[0] + type + ".inp"
         
         # Find the gbw file.
         gbw = xyzfile.split(".")[0] + ".gbw"
-        print(gbw)
         
-        # Write the freq file.
+        # Write the .inp file.
         if coords != []:
             self.write_inp(struct, template, state, coords, filename, gbw)
         

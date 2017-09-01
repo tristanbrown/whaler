@@ -24,7 +24,10 @@ def main(args=None):
         A.write_gsEs()
     elif 'freqinp' in args:
         A = analysis.Analysis()
-        A.write_freqinp_all()
+        A.write_inp_all("freq", "freqsample.inp")
+    elif 'singleinp' in args:
+        A = analysis.Analysis()
+        A.write_inp_all("single", "singlesample.inp")
     elif 'filegen' in args:
         gen = filegen.Generator(args[-1])
         gen.run()
