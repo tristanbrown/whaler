@@ -20,7 +20,6 @@ def main(args=None):
         print("No arguments passed.")
     elif 'gs' in args:
         A = analysis.Analysis()
-        A.groundstates_all()
         A.write_gsEs()
     elif 'freqinp' in args:
         A = analysis.Analysis()

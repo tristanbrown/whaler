@@ -19,29 +19,60 @@ class Analysis():
         self.statekey = {
             self.states[i]:elnums[i] for i in range(len(elnums))}
         
+        # Analysis output filenames. 
+        self.gs_out = "groundstate_Es.csv"
+        
     def groundstates_all(self):
         """Compares the energies of each calculated spin state for a structure
         and writes the energy differences as a table."""
         
+        print("Calculating ground spin states.")
         # Collect state energies from files. 
         results = [self.spinstates(struct) for struct in self.structs]
         
         # Construct dataframe. 
         headers = np.array(self.states)
-        self.gEs = (
+        gEs = (
             pd.DataFrame(data=results, index=self.structs, columns=headers))
         
-        self.relgEs = self.gEs.subtract(self.gEs.min(1), axis=0)
-        self.gEs['Ground State'] = self.gEs.idxmin(axis=1)
-        self.relgEs['Ground State'] = self.gEs['Ground State']
+        gEs['Ground State'] = gEs.idxmin(axis=1)
         
-    def write_gsEs(self, outname="groundstate_Es.csv", 
-                            diffname="groundstate_relEs.csv"):
+        return gEs
+        
+    def write_gsEs(self):
         # Write the ground state data.
-        self.gEs.to_csv(os.path.join(self.loc, outname))
-        self.relgEs.to_csv(os.path.join(self.loc, diffname))
-        
+        try:
+            os.remove(os.path.join(self.loc, self.gs_out))
+            print("Overwriting %s." % self.gs_out)
+        except:
+            pass
+        self.gEs.to_csv(os.path.join(self.loc, self.gs_out))
+        print(
+            "Wrote optimization energies and ground states to %s."
+            % self.gs_out)
     
+    @property
+    def gEs(self):
+        """Returns self.gEs, either from the existing assignment, from the
+        output file, or from a fresh calculation. 
+        """
+        try:
+            return self._gEs
+        except:
+            try:
+                self._gEs = pd.read_csv(
+                            os.path.join(self.loc, self.gs_out),
+                            index_col=0)
+                print("Reading ground spin states from %s." % self.gs_out)
+            except:
+                self._gEs = self.groundstates_all()
+            return self._gEs
+        
+    def crude_rxn_Es(self):
+        """Subtracts the crude (geo) energy of each M2(L)4 structure from the 
+        corresponding M2(L)4N and M2(L)4N2 structures, tabulating the results.
+        """
+        return []
     
     def spinstates(self, structure):
         """For a given structure, identifies all of the files optimizing 
@@ -80,17 +111,6 @@ class Analysis():
         """Used for writing input files based on previous calculations that 
         generate .xyz and .gbw files. 
         """
-        # Make sure self.gEs exists.
-        try: 
-            self.gEs
-        except:
-            try:
-                self.gEs = pd.read_csv(
-                            os.path.join(self.loc, "groundstate_Es.csv"),
-                            index_col=0)
-            except:
-                print("Calculating ground spin states.")
-                self.groundstates_all()
         
         for struct in self.structs:
             try:
