@@ -17,47 +17,69 @@ class Generator():
         guide = __import__(guidefile)
         
         # Set the variables given by the guide. 
-        self.dirs = guide.dirs
+        self.dirs = self.give_dirs(guide.dirs)
+        print(self.dirs)
         try:
             self.multi = guide.multi_repl
         except:
             self.multi = None
             
         try:
-            self.dir = guide.dir_repl
-            self.file = guide.file_repl
-            self.txt = guide.txt_repl
+            self.dirkey = guide.dir_repl
+            self.filekey = guide.file_repl
+            self.txtkey = guide.txt_repl
         except:
-            self.dir = None
-            self.file = None
-            self.txt = None
+            self.dirkey = None
+            self.filekey = None
+            self.txtkey = None
         
     def run(self):
         """Runs the file generation script.
         """
         if self.multi != None:
             print("Running multi-replacement script.")
-        elif self.dir != None:
+        elif self.dirkey != None:
             print("Running individual replacements.")
-            self.ind_repl(self.dirs, self.dir, self.file, self.txt)
+            self.ind_repl(self.dirkey, self.filekey, self.txtkey)
         else:
             print("Guide file is broken. Please check.")
     
-    def ind_repl(self, dirs, dir, file, txt):
+    def ind_repl(self, dirkey, filekey, txtkey):
         """Performs all of the replacements given in the guide file.
         """
-        folders = self.give_dirs(dirs)
-        print(folders)
-        return []
+        for dir in self.dirs:
+            for file in self.get_files(dir):
+                self.repl_file(dir, file, dirkey, filekey, txtkey)
+        
+    def repl_file(self, dir, file, dirkey, filekey, txtkey):
+        """Uses keys to replace strings at the directory, filename, and text 
+        levels. 
+        """
+        startloc = os.path.join(self.loc, dir, file)
+        newdir = self.dictreplace(dir, dirkey)
+        newfile = self.dictreplace(file, filekey)
+        enddir = os.path.join(self.loc, newdir)
+        endloc = os.path.join(enddir, newfile)
+        if not os.path.exists(enddir):
+            os.makedirs(enddir)
+        if startloc != endloc:
+            print("Reading " + startloc)
+            print("Writing " + endloc)
+            self.replace_all_vals(startloc, endloc, txtkey)
     
     def give_dirs(self, dirdefs):
         """Takes a list of directory identifiers and returns the list of 
         directories in the current location matching those conditions. 
         """
         dirlist = next(os.walk('.'))[1]
-        for dir in dirlist:
-            print(dir)
-            print(self.stringcheck(dirdefs[0], dir))
+        return [dir for dir in dirlist
+                if self.check_all_rules(dirdefs, dir)]
+                
+    def get_files(self, dir):
+        """Gives a list of the files in a given directory."""
+        path = os.path.join(self.loc, dir)
+        return [f for f in os.listdir(path)
+                if os.path.isfile(os.path.join(path, f))]
     
     def stringcheck(self, rule, string):
         """Takes a string rule and determines if the string matches that rule.
@@ -71,3 +93,29 @@ class Generator():
         else:
             start, end = rule.split("*")
             return string.startswith(start) and string.endswith(end)
+    
+    def check_all_rules(self, rulelist, string):
+        """Does stringcheck for all the given rules, and determines if any of
+        them applies. 
+        """
+        checks = []
+        for rule in rulelist:
+            checks.append(self.stringcheck(rule, string))
+        
+        return True in checks
+    
+    def dictreplace(self, string, keydict):
+        """Uses a dictionary as a key for string replacements. 
+        """
+        for old, new in keydict.items():
+            string = string.replace(old, new)
+        return string
+    
+    def replace_all_vals(self, infile, outfile, keydict):
+        """Replaces all instances of a particular string in a file, using a
+        dictionary of old:new text replacements as the key.
+        """
+        with open(infile, "rt") as fin:
+            with open(outfile, "wt") as fout:
+                for line in fin:
+                    fout.write(self.dictreplace(line, keydict))
