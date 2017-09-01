@@ -93,9 +93,12 @@ class Analysis():
                 self.groundstates_all()
         
         for struct in self.structs:
-            state = self.gEs.loc[struct,'Ground State']
-            if state in self.states:
-                self.assemble_inp(struct, template, state, type)
+            try:
+                state = self.gEs.loc[struct,'Ground State']
+                if state in self.states:
+                    self.assemble_inp(struct, template, state, type)
+            except KeyError:
+                print("Ground state missing for %s. Rerun whaler gs." % struct)
         
     def write_inp(self, struct, template, state, coords, filename, gbw=None):
         """
