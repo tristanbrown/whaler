@@ -45,6 +45,11 @@ class Analysis():
         
         if type == "gs":
             out = self.gs_out
+            try:
+                os.remove(os.path.join(self.loc, out))
+                print("Overwriting %s." % out)
+            except:
+                pass
             data = self.gEs
             message = "optimization energies and ground states"
         elif type == "cruderxn":
@@ -55,11 +60,7 @@ class Analysis():
             raise
         
         # Write the data.
-        try:
-            os.remove(os.path.join(self.loc, out))
-            print("Overwriting %s." % out)
-        except:
-            pass
+        
         data.to_csv(os.path.join(self.loc, out))
         print("Wrote {0} to {1}.".format(message, out))
     
@@ -97,7 +98,6 @@ class Analysis():
         nitride = []
         nitrogen = []
         
-        struct_Es['Ru2OO4N'] = -1100 # TESTING ONLY!!! Remove this later
         for k,v in struct_Es.items():
             structs.append(k)
             try:
