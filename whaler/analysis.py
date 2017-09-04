@@ -87,11 +87,9 @@ class Analysis():
         """
         # Make a dictionary of all structures with ground state energies. 
         short_gEs = self.gEs.dropna(axis=0, how='all')
-        print(short_gEs)
         struct_Es = {
             struct : short_gEs.loc[struct][:-1].min()
             for struct in short_gEs.index}
-        print(struct_Es)
         
         # Calculate the energy differences. 
         structs = []
