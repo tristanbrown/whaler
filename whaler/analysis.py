@@ -59,6 +59,11 @@ class Analysis():
             message = "crude reaction energies"
         elif type == "thermo":
             out = self.thermo_out
+            try:
+                os.remove(os.path.join(self.loc, out))
+                print("Overwriting %s." % out)
+            except:
+                pass
             data = self.therm_Es
             message = "thermodynamic values"
         else:
@@ -110,7 +115,7 @@ class Analysis():
         
         print("Calculating thermodynamic values.")
         # Collect state energies from files. 
-        results = [self.getthermo(struct) for struct in self.structs]
+        results = [self.get_thermo(struct) for struct in self.structs]
         
         # Construct dataframe. 
         headers = np.array(self.states) # change this
@@ -134,7 +139,7 @@ class Analysis():
         """
         dir = IO(dir=os.path.join(self.loc, structure))
         return dir.get_values(
-                structure, "freq.log", self.freqvalid, self.thermo_E)
+                structure, "freq.log", self.freqvalid, self.thermo_vals)
     
         
     def write_inp_all(self, type, template):
@@ -242,16 +247,7 @@ class Analysis():
     def freqvalid(self, file, path):
         """
         """
-        reader = IO(file, path)
-        
         return self.isvalid(file, path) and self.freqconverged(file, path)
-    
-    def freqconverged(self, file, path, chunk=10000, maxsearch=100000):
-        """
-        """
-        reader = IO(file, path)
-        tail = reader.tail(chunk)
-        print(tail)
     
     def isvalid(self, file, path):
         """
@@ -259,12 +255,16 @@ class Analysis():
         reader = IO(file, path)
         end = reader.tail(2)
         if 'ABORTING THE RUN\n' in end:
-            self.logfile.appendline(file + ' aborted abnormally.')
+            message = file + ' aborted abnormally.'
+            self.logfile.appendline(message)
+            print(message)
             return False
         elif 'ORCA TERMINATED NORMALLY' in end[0]:
             return True
         else:
-            self.logfile.appendline(file + ' has unknown structure.')
+            message = file + ' has unknown structure.'
+            self.logfile.appendline(message)
+            print(message)
             return False
     
     def geoconverged(self, file, path, chunk=100, maxsearch=1000):
@@ -282,6 +282,18 @@ class Analysis():
             return True
         else:
             self.geoconverged(file, path, chunk*2)
+    
+    def freqconverged(self, file, path):
+        """
+        """
+        reader = IO(file, path)
+        lines = reader.lines()
+        if ("ORCA_NUMFREQ: ORCA finished with an error in the energy"
+            " calculation") in lines:
+            print("SCF convergence error in %s." % file)
+            return False
+        else:
+            return True
         
     def finalE(self, file, path, chunk=100):
         """Extracts the final Single Point Energy from a .log file. 
@@ -297,3 +309,10 @@ class Analysis():
             return self.finalE(file, path, chunk+100)
         else:
             return float(energyline[-1].split()[-1])
+    
+    def thermo_vals(self, file, path, chunk=100):
+        """Extracts the thermodynamic values from a .log file. 
+        """
+        reader = IO(file, path)
+        print("Thermodynamic values can be extracted from %s." % file)
+        return []

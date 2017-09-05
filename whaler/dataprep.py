@@ -40,10 +40,13 @@ class IO():
             
             values = {
                 v[1]:extractor(k, path) for (k,v) in ftypes.items() 
-                if v[0] == curriter and filecheck(k,path)}
+                if v[0] == curriter and filecheck(k, path)}
                 
-        except ValueError:
-            values = {}
+        except ValueError as e:
+            if "not enough values" in str(e):
+                values = {}
+            else:
+                raise e
             
         # Return values packed in a dictionary.
         return values
@@ -114,7 +117,7 @@ class IO():
     
     def lines(self):
         """Gives all lines from a file as a list"""
-        with open(self.fn) as f:
+        with open(self.fn, "rt", encoding='latin-1') as f:
             lines = f.read().splitlines()
         return list(lines)
     
