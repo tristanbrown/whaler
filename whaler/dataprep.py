@@ -20,6 +20,46 @@ class IO():
         else:
             print("%s does not yet exist." % self.fn)
     
+    def get_values(self, structure, exten, filecheck, extractor):
+        """For a given structure, identifies all of the relevant, current log
+        files. Runs filecheck to verify convergence, and then uses the extractor
+        to acquire the desired values from the file. The values arereturned as a state:value dictionary. 
+        """
+        path = self.fn
+        
+        # Narrows it down to the appropriate log files.
+        logs = self.files_end_with(exten)
+        
+        # Unpacks filetypes.
+        ftypes = {file:self.getcalctype(file) for file in logs}
+        
+        try:
+            iter, state, type = (zip(*ftypes.values()))
+            # Removes invalid and outdated files, marking the log. 
+            curriter = max(iter)
+            
+            values = {
+                v[1]:extractor(k, path) for (k,v) in ftypes.items() 
+                if v[0] == curriter and filecheck(k,path)}
+                
+        except ValueError:
+            values = {}
+            
+        # Return values packed in a dictionary.
+        return values
+    
+    def getcalctype(self, file):
+        """Takes a chemical computation file and gives the calc type labels, 
+        based on the filename formulation: xxxxxxx_NSyyy.log, where x chars
+        refer to the structure name, N is the iteration number, S is the spin
+        state label, and yyy is the optimization type. 
+        """
+        labels = file.split('_')[-1]
+        iter = int(labels[0])
+        state = labels[1]
+        type = labels.split('.')[0][2:]
+        return (iter, state, type)
+    
     def appendline(self, line):
         """Useful for writing log files.
         """
