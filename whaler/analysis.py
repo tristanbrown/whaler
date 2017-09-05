@@ -82,8 +82,9 @@ class Analysis():
             return self._gEs
         
     def crude_rxn_Es(self):
-        """Subtracts the crude (geo) energy of each M2(L)4 structure from the 
-        corresponding M2(L)4N and M2(L)4N2 structures, tabulating the results.
+        """Subtracts the crude (geo) energy of each M2(L)4 structure and N2 from
+        the corresponding M2(L)4N and M2(L)4N2 structures, tabulating the
+        results.
         """
         # Make a dictionary of all structures with ground state energies. 
         short_gEs = self.gEs.dropna(axis=0, how='all')
@@ -96,14 +97,16 @@ class Analysis():
         nitride = []
         nitrogen = []
         
+        N2_E = self.finalE("N2_4geo.log", os.path.join(self.loc, "N2"))
+        
         for k,v in struct_Es.items():
             structs.append(k)
             try:
-                nitride.append(struct_Es[k + 'N'] - v)
+                nitride.append(struct_Es[k + 'N'] - v - N2_E/2)
             except:
                 nitride.append(np.nan)
             try:
-                nitrogen.append(struct_Es[k + 'N2'] - v)
+                nitrogen.append(struct_Es[k + 'N2'] - v - N2_E)
             except:
                 nitrogen.append(np.nan)
         
@@ -139,7 +142,7 @@ class Analysis():
 
             stateEs = {
                 v[1]:self.finalE(k, path) for (k,v) in ftypes.items() 
-                if v[0] == curriter and self.isvalid(k,path)}
+                if v[0] == curriter and self.geovalid(k,path)}
                 
         except ValueError:
             stateEs = {}
@@ -259,6 +262,18 @@ class Analysis():
         type = labels.split('.')[0][2:]
         return (iter, state, type)
     
+    def geovalid(self, file, path):
+        """
+        """
+        return self.isvalid(file, path) and self.geoconverged(file, path)
+    
+    def freqvalid(self, file, path):
+        """
+        """
+        reader = IO(file, path)
+        
+        
+    
     def isvalid(self, file, path):
         """
         """
@@ -268,17 +283,17 @@ class Analysis():
             self.logfile.appendline(file + ' aborted abnormally.')
             return False
         elif 'ORCA TERMINATED NORMALLY' in end[0]:
-            return self.isconverged(file, path)
+            return True
         else:
             self.logfile.appendline(file + ' has unknown structure.')
             return False
     
-    def isconverged(self, file, path, chunk=100):
+    def geoconverged(self, file, path, chunk=100, maxsearch=1000):
         """
         """
         reader = IO(file, path)
         tail = reader.tail(chunk)
-        if chunk > 1000:
+        if chunk > maxsearch:
             self.logfile.appendline(file + ' has unknown structure.')
             return False
         elif 'WARNING!!!!!!!\n' in tail:
@@ -287,7 +302,7 @@ class Analysis():
         elif '*** OPTIMIZATION RUN DONE ***' in ''.join(tail):
             return True
         else:
-            self.converged(file, path, chunk+100)
+            self.geoconverged(file, path, chunk*2)
         
     def finalE(self, file, path, chunk=100):
         """Extracts the final Single Point Energy from a .log file. 
