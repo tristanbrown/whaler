@@ -41,7 +41,7 @@ class Analysis():
         
         return gEs
         
-    def write_data(self, type):
+    def write_data(self, type, custom_out=None, custom_data=None):
         # Choose the data type and output location. 
         
         if type == "gs":
@@ -54,12 +54,12 @@ class Analysis():
             data = self.gEs
             message = "optimization energies and ground states"
         elif type == "cruderxn":
-            out = self.crude_out
-            data = self.crude_rxn_Es()
+            out = custom_out
+            data = custom_data
             message = "crude reaction energies"
         elif type == "thermo":
-            out = self.thermo_out
-            data = self.therm_Es
+            out = custom_out
+            data = custom_data
             message = "thermodynamic values"
         else:
             raise
@@ -85,44 +85,6 @@ class Analysis():
             except OSError:
                 self._gEs = self.groundstates_all()
             return self._gEs
-        
-    def crude_rxn_Es(self):
-        """Subtracts the crude (geo) energy of each M2(L)4 structure and N2 from
-        the corresponding M2(L)4N and M2(L)4N2 structures, tabulating the
-        results.
-        """
-        # Make a dictionary of all structures with ground state energies. 
-        short_gEs = self.gEs.dropna(axis=0, how='all')
-        struct_Es = {
-            struct : short_gEs.loc[struct][:-1].min()
-            for struct in short_gEs.index}
-        
-        # Calculate the energy differences. 
-        structs = []
-        nitride = []
-        nitrogen = []
-        
-        N2_E = self.finalE("N2_4geo.log", os.path.join(self.loc, "N2"))
-        
-        for k,v in struct_Es.items():
-            structs.append(k)
-            try:
-                nitride.append(struct_Es[k + 'N'] - v - N2_E/2)
-            except:
-                nitride.append(np.nan)
-            try:
-                nitrogen.append(struct_Es[k + 'N2'] - v - N2_E)
-            except:
-                nitrogen.append(np.nan)
-        
-        # Tabulate the data. 
-        headers = ['Add N', 'Add N2']
-        results = np.array([nitride, nitrogen]).T
-        rxn_Es = pd.DataFrame(data=results, index=structs, columns=headers)
-        rxn_Es = rxn_Es.dropna(axis=0, how='all')
-        
-        print(rxn_Es)
-        return rxn_Es
     
     @property
     def therm_Es(self):
