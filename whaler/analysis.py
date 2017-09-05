@@ -22,6 +22,7 @@ class Analysis():
         # Analysis output filenames. 
         self.gs_out = "groundstate_Es.csv"
         self.crude_out = "cruderxn_Es.csv"
+        self.thermo_out = "thermo_Es.csv"
         
     def groundstates_all(self):
         """Compares the energies of each calculated spin state for a structure
@@ -29,7 +30,7 @@ class Analysis():
         
         print("Calculating ground spin states.")
         # Collect state energies from files. 
-        results = [self.spinstates(struct) for struct in self.structs]
+        results = [self.get_states(struct) for struct in self.structs]
         
         # Construct dataframe. 
         headers = np.array(self.states)
@@ -56,6 +57,10 @@ class Analysis():
             out = self.crude_out
             data = self.crude_rxn_Es()
             message = "crude reaction energies"
+        elif type == "thermo":
+            out = self.thermo_out
+            data = self.therm_Es
+            message = "thermodynamic values"
         else:
             raise
         
@@ -119,38 +124,82 @@ class Analysis():
         print(rxn_Es)
         return rxn_Es
     
-    def spinstates(self, structure):
-        """For a given structure, identifies all of the files optimizing 
-        geometries in different spin states. Verifies convergence, and then
-        finds the final single-point energy for each file. Returns an array of 
-        energies of the various spin states.
-        Possibilities: S T P D Q (for S = 0, 1, 2, 1/2, 3/2)
+    @property
+    def therm_Es(self):
+        """Returns self.therm_Es, either from the existing assignment, from the
+        output file, or from a fresh calculation. 
+        """
+        try:
+            return self._therm_Es
+        except AttributeError:
+            try:
+                self._therm_Es = pd.read_csv(
+                            os.path.join(self.loc, self.thermo_out),
+                            index_col=0)
+                print("Reading thermodynamic values from %s."
+                        % self.thermo_out)
+            except OSError:
+                self._therm_Es = self.thermo_all()
+            return self._therm_Es
+    
+    def thermo_all(self):
+        """Compares the energies of each calculated spin state for a structure
+        and writes the energy differences as a table."""
+        
+        print("Calculating thermodynamic values.")
+        # Collect state energies from files. 
+        results = [self.getthermo(struct) for struct in self.structs]
+        
+        # Construct dataframe. 
+        headers = np.array(self.states) # change this
+        thermoEs = (
+            pd.DataFrame(data=results, index=self.structs, columns=headers))
+        
+        # thermoEs['Ground State'] = gEs.idxmin(axis=1)
+        
+        return thermoEs
+    
+    def get_states(self, structure):
+        """Returns an array of energies of the various spin states for a
+        structure, using all available distinct spin-state calculations. 
+        """
+        return self.get_values(
+                structure, "geo.log", self.geovalid, self.finalE)
+    
+    def get_thermo(self, structure):
+        """
+        """
+        return self.get_values(
+                structure, "freq.log", self.freqvalid, self.thermo_E)
+    
+    def get_values(self, structure, exten, filecheck, extractor):
+        """For a given structure, identifies all of the relevant, current log
+        files. Runs filecheck to verify convergence, and then uses the extractor
+        to acquire the desired values from the file. The values arereturned as a state:value dictionary. 
         """
         path = os.path.join(self.loc, structure)
         dir = IO(dir=path)
         
-        # Narrows it down to geo.log files.
-        geologs = dir.files_end_with("geo.log")
+        # Narrows it down to the appropriate log files.
+        logs = dir.files_end_with(exten)
         
         # Unpacks filetypes.
-        ftypes = {file:self.getcalctype(file) for file in geologs}
+        ftypes = {file:self.getcalctype(file) for file in logs}
         
         try:
             iter, state, type = (zip(*ftypes.values()))
             # Removes invalid and outdated files, marking the log. 
             curriter = max(iter)
-
-            stateEs = {
-                v[1]:self.finalE(k, path) for (k,v) in ftypes.items() 
-                if v[0] == curriter and self.geovalid(k,path)}
+            
+            values = {
+                v[1]:extractor(k, path) for (k,v) in ftypes.items() 
+                if v[0] == curriter and filecheck(k,path)}
                 
         except ValueError:
-            stateEs = {}
+            values = {}
             
-        # Define States and return full array of energies of states.
-        return [
-            stateEs[s] if s in stateEs.keys()
-                else np.nan for s in self.states]
+        # Return values packed in a dictionary.
+        return values
         
     def write_inp_all(self, type, template):
         """Used for writing input files based on previous calculations that 
@@ -272,7 +321,14 @@ class Analysis():
         """
         reader = IO(file, path)
         
-        
+        return self.isvalid(file, path) and self.freqconverged(file, path)
+    
+    def freqconverged(self, file, path, chunk=10000, maxsearch=100000):
+        """
+        """
+        reader = IO(file, path)
+        tail = reader.tail(chunk)
+        print(tail)
     
     def isvalid(self, file, path):
         """

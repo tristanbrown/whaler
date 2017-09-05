@@ -30,6 +30,9 @@ def main(args=None):
     elif 'singleinp' in args:
         A = analysis.Analysis()
         A.write_inp_all("single", "singlesample.inp")
+    elif 'thermo' in args:
+        A = analysis.Analysis()
+        A.write_data("thermo")
     elif 'filegen' in args:
         gen = filegen.Generator(args[-1])
         gen.run()
