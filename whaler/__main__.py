@@ -28,15 +28,16 @@ def main(args=None):
     elif 'singleinp' in args:
         A = analysis.Analysis()
         A.write_inp_all("single", "singlesample.inp")
+    elif 'thermo' in args:
+        A = analysis.Analysis()
+        A.write_data("thermo")
     elif 'filegen' in args:
         gen = filegen.Generator(args[-1])
         gen.run()
     elif 'crudeN2' in args:
         A = custom.Reactions()
         A.write_crude_N2()
-    elif 'thermo' in args:
-        A = analysis.Analysis()
-        A.write_data("thermo")
+    
     
 if __name__ == "__main__":
     main()

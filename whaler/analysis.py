@@ -58,8 +58,8 @@ class Analysis():
             data = custom_data
             message = "crude reaction energies"
         elif type == "thermo":
-            out = custom_out
-            data = custom_data
+            out = self.thermo_out
+            data = self.therm_Es
             message = "thermodynamic values"
         else:
             raise

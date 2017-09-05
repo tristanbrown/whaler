@@ -1,4 +1,4 @@
-"""
+"""A module containing analytical objects specific to a particular experiment. 
 """
 import os
 import numpy as np
