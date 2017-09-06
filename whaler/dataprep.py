@@ -140,3 +140,20 @@ class IO():
                     for old, new in keydict.items():
                         line = line.replace(old, new)
                     fout.write(line)
+
+def extract_floats(str):
+    """Takes a string and returns a list of floats in that string.
+    """
+    return [float(n) for n in re.findall(r"[-+]?\d*\.\d+|\d+", str)]
+
+def dict_values(dicts):
+    """Takes a list of dictionaries and returns a list comprised of those
+    dictionary's values.
+    """
+    results = []
+    for dict in dicts:
+        if dict:
+            results.append(*dict.values())
+        else:
+            results.append({})
+    return results

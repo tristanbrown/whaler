@@ -5,7 +5,9 @@ import time
 import os
 import numpy as np
 import pandas as pd
-from whaler.dataprep import IO
+from .dataprep import IO
+from .dataprep import extract_floats as extr
+from .dataprep import dict_values as dvals
 
 class Analysis():
     """
@@ -15,6 +17,8 @@ class Analysis():
         self.structs = next(os.walk('.'))[1]
         self.logfile = IO('whaler.log', self.loc)
         self.states = ['S', 'T', 'P', 'D', 'Q']
+        self.thermvals = [
+            'U', 'H', 'S (el)', 'S (vib)', 'S (trans)', 'qrot', 'rot #']
         elnums = [1, 3, 5, 2, 4]
         self.statekey = {
             self.states[i]:elnums[i] for i in range(len(elnums))}
@@ -114,16 +118,16 @@ class Analysis():
         and writes the energy differences as a table."""
         
         print("Calculating thermodynamic values.")
-        # Collect state energies from files. 
-        results = [self.get_thermo(struct) for struct in self.structs]
+        # Collect thermodynamic values from files. 
+        results = dvals([self.get_thermo(struct) for struct in self.structs])
         
         # Construct dataframe. 
-        headers = np.array(self.states) # change this
+        headers = np.array(self.thermvals)
         thermoEs = (
             pd.DataFrame(data=results, index=self.structs, columns=headers))
         
         # thermoEs['Ground State'] = gEs.idxmin(axis=1)
-        
+        # print(thermoEs)
         return thermoEs
     
     def get_states(self, structure):
@@ -138,8 +142,10 @@ class Analysis():
         """Returns a dictionary of thermodynamic values for a structure, using all available distinct spin-state calculations. 
         """
         dir = IO(dir=os.path.join(self.loc, structure))
-        return dir.get_values(
+        values = dir.get_values(
                 structure, "freq.log", self.freqvalid, self.thermo_vals)
+        
+        return values
     
         
     def write_inp_all(self, type, template):
@@ -314,5 +320,42 @@ class Analysis():
         """Extracts the thermodynamic values from a .log file. 
         """
         reader = IO(file, path)
-        print("Thermodynamic values can be extracted from %s." % file)
-        return []
+        # print("Thermodynamic values can be extracted from %s." % file)
+        lines = reader.lines()
+        
+        # Mark the data locations.
+        marker1 = 'VIBRATIONAL FREQUENCIES'
+        marker2 = 'NORMAL MODES'
+        marker3 = 'INNER ENERGY'
+        for i in range(len(lines)):
+            line = lines[i]
+            if line == marker1:
+                vib_start = i+3
+            elif line == marker2:
+                vib_end = i-3
+            elif line == marker3:
+                therm_start = i
+        
+        # Extract the data values. 
+        vib_lines = lines[vib_start:vib_end]
+        U = extr(lines[therm_start+19])[0]
+        H = extr(lines[therm_start+39])[0]
+        S_el = extr(lines[therm_start+54])[0]
+        S_vib = extr(lines[therm_start+55])[0]
+        S_trans = extr(lines[therm_start+57])[0]
+        linearity = lines[therm_start+65]
+        if ' linear' in linearity:
+            rot_num = 1
+        elif 'nonlinear' in linearity:
+            rot_num = 1.5
+        else:
+            raise
+        qrot = extr(lines[therm_start+68])[0]
+        
+        values = {
+            'U':U, 'H':H, 'S (el)':S_el, 'S (vib)':S_vib,
+            'S (trans)':S_trans, 'qrot':qrot, 'rot #':rot_num}
+
+        return values
+    
+    
