@@ -66,6 +66,10 @@ class Analysis():
                 pass
             data = self.therm_Es
             message = "thermodynamic values"
+        elif type == "cruderxn":
+            out = custom_out
+            data = custom_data
+            message = "crude reaction energies"
         elif type == "N2act":
             out = custom_out
             data = custom_data
