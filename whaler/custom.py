@@ -55,15 +55,57 @@ class Reactions():
             for struct in short_gEs.index if struct[-2:] == 'N2'
             }
         
-        print(base_structs)
-        print(N_structs)
-        print(N2_structs)
+        # Acquire bond lengths. 
         
         gs_M_M = {
-            # struct : 
+            struct : self.A.bondlength(struct, state, 'M', 'M', 'z')
+            for struct,state in base_structs.items()
             }
         
-        return []
+        es_M_M = {
+            struct : self.A.bondlength(struct,
+                                        self.A.spinflip[state], 'M', 'M', 'z')
+            for struct,state in base_structs.items()
+            }
+        
+        gs_M_MN = {
+            struct[:-1] : self.A.bondlength(struct, state, 'M', 'M', 'z')
+            for struct,state in N_structs.items()
+            }
+        
+        gs_M_MN2 = {
+            struct[:-2] : self.A.bondlength(struct, state, 'M', 'M', 'z')
+            for struct,state in N2_structs.items()
+            }
+        
+        gs_M2_N = {
+            struct[:-1] : self.A.bondlength(struct, state, 'M', 'N', 'z')
+            for struct,state in N_structs.items()
+            }
+        
+        gs_M2_N2 = {
+            struct[:-2] : self.A.bondlength(struct, state, 'M', 'N', 'z', 1)
+            for struct,state in N2_structs.items()
+            }
+        
+        gs_M2N_N = {
+            struct[:-2] : self.A.bondlength(struct, state, 'N', 'N', 'z')
+            for struct,state in N2_structs.items()
+            }
+        
+        # Construct the data table. 
+        headers = [
+            'M-M gs', 'M-M es', 'M-MN2', 'M-MN', 'M2-N', 'M2-N2', 'M2N-N']
+        results = [
+            gs_M_M, es_M_M, gs_M_MN2, gs_M_MN, gs_M2_N, gs_M2_N2, gs_M2N_N]
+        
+        resultsdict = {k:v for k,v in zip(headers, results)}
+        
+        lengths = pd.DataFrame.from_dict(data=resultsdict, orient='columns')
+        lengths = lengths[headers]
+        print(lengths)
+        
+        return lengths
     
     def crude_N2_act(self):
         """Subtracts the crude (geo) energy of each M2(L)4 structure and N2 from

@@ -232,7 +232,7 @@ class Analysis():
         dir = IO(dir=path)
         
         # Filter down to the appropriate .xyz file. 
-        xyzfile = sorted(dir.files_end_with(type + ".xyz"))[-1]
+        xyzfile = sorted(dir.files_end_with(state + type + ".xyz"))[-1]
         
         # Check if the .xyz file has been aligned. 
         if self.xyz_aligned(xyzfile, path):
@@ -258,6 +258,62 @@ class Analysis():
             print(message)
             self.logfile.appendline(message)
             return False
+    
+    def xyz_to_coords(self, xyz):
+        """Converts a list of .xyz file lines into a list of atom-labeled
+        coordinates.
+        """
+        coords = []
+        for line in xyz:
+            rawcoord = line.split()
+            coord = [rawcoord[0]] + [float(n) for n in rawcoord[1:]]
+            coords.append(coord)
+        
+        return coords
+    
+    def bondlength(self, struct, state, elem1, elem2, axis='z', skip=0):
+        """
+        """
+        axiskey = {'x':1, 'y':2, 'z':3}
+        
+        # Get the coordinates. 
+        file, rawcoords = self.get_xyz(struct, state, "geo")
+        coords = self.xyz_to_coords(rawcoords)
+        
+        if coords == []:
+            print("Can't get coordinates from %s." % file)
+            return None
+        else:
+        
+            # Find the atoms of the right elements. 
+            elems = [elem1, elem2]
+            for i in range(2):
+                if elems[i] == 'M':
+                    elems[i] = coords[0][0]
+            
+            atomlist = [atom for atom in coords if atom[0] in elems]
+            
+            # Eliminate skipped atoms. 
+            for x in range(skip):
+                axis_coord = list(zip(*atomlist))[axiskey[axis]]
+                maxindex = axis_coord.index(max(axis_coord))
+                del atomlist[maxindex]
+            
+            # Choose the 2 atoms furthest along the given axis.
+            atoms = []
+            for elem in elems:
+                axis_max = -99999
+                maxindex = None
+                for i,atom in enumerate(atomlist):
+                    if atom[0] == elem and atom[axiskey[axis]] > axis_max:
+                        axis_max = atom[axiskey[axis]]
+                        maxindex = i
+                atoms.append(np.array(atomlist.pop(maxindex)[1:]))
+            
+            # Calculate the bond length. 
+            length = np.sqrt(np.sum((atoms[0] - atoms[1])**2))
+            
+            return length
     
     def geovalid(self, file, path):
         """
