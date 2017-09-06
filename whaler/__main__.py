@@ -40,6 +40,9 @@ def main(args=None):
     elif 'N2act' in args:
         A = custom.Reactions()
         A.write_N2_act()
-    
+    elif 'N2bonds' in args:
+        A = custom.Reactions()
+        A.write_N2_bonds()
+        
 if __name__ == "__main__":
     main()

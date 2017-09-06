@@ -14,6 +14,7 @@ class Reactions():
         # Analysis output filenames. 
         self.crude_N2_out = "crudeN2_Es.csv"
         self.N2_act_out = "N2_act_Es.csv"
+        self.N2_bond_out = "N2_act_bonds.csv"
         
         # Physical constants.
         self.kB = 3.1668114/1000000
@@ -28,6 +29,41 @@ class Reactions():
         """
         """
         self.A.write_data("N2act", self.N2_act_out, self.therm_N2_act())
+    
+    def write_N2_bonds(self):
+        """
+        """
+        self.A.write_data("bonds", self.N2_bond_out, self.MMN2_bonds())
+    
+    def MMN2_bonds(self):
+        """Tabulates the M-M, M-N, and N-N bond lengths in M2(L)4, M2(L)4N, and 
+        M2(L)4N2 structures. 
+        """
+        # Generate structure sets.
+        short_gEs = self.A.gEs.dropna(axis=0, how='all')
+        base_structs = {
+            struct : short_gEs.loc[struct, 'Ground State']
+            for struct in short_gEs.index if struct[-1] == '4'
+            }
+        N_structs = {
+            struct : short_gEs.loc[struct, 'Ground State']
+            for struct in short_gEs.index if struct[-2:] == '4N'
+            }
+            
+        N2_structs = {
+            struct : short_gEs.loc[struct, 'Ground State']
+            for struct in short_gEs.index if struct[-2:] == 'N2'
+            }
+        
+        print(base_structs)
+        print(N_structs)
+        print(N2_structs)
+        
+        gs_M_M = {
+            # struct : 
+            }
+        
+        return []
     
     def crude_N2_act(self):
         """Subtracts the crude (geo) energy of each M2(L)4 structure and N2 from

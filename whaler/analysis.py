@@ -17,6 +17,12 @@ class Analysis():
         self.structs = next(os.walk('.'))[1]
         self.logfile = IO('whaler.log', self.loc)
         self.states = ['S', 'T', 'P', 'D', 'Q']
+        self.spinflip = {
+            'S' : 'T',
+            'T' : 'S',
+            'D' : 'Q',
+            'Q' : 'D'
+            }
         self.thermvals = [
             'U', 'H', 'S*T (el)', 'S*T (vib)', 'S*T (trans)', 'qrot', 'rot #']
         elnums = [1, 3, 5, 2, 4]
@@ -66,6 +72,10 @@ class Analysis():
                 pass
             data = self.therm_Es
             message = "thermodynamic values"
+        elif type == "bonds":
+            out = custom_out
+            data = custom_data
+            message = "bond lengths"
         elif type == "cruderxn":
             out = custom_out
             data = custom_data
@@ -356,9 +366,21 @@ class Analysis():
             raise
         qrot = extr(lines[therm_start+68])[0]
         
-        values = {
-            'U':U, 'H':H, 'S*T (el)':S_el, 'S*T (vib)':S_vib,
-            'S*T (trans)':S_trans, 'qrot':qrot, 'rot #':rot_num}
+        vibs = [extr(line)[:2] for line in vib_lines]
+        img_modes = []
+        for vib in vibs:
+            if vib[1] < 0:
+                img_modes.append(vib)
+        
+        if len(img_modes) > 0:
+            values = {}
+            print("ERROR: %s contains imaginary modes:" % file)
+            for mode in img_modes:
+                print("#{0}: {1} cm^-1".format(mode[0], mode[1]))
+        else:
+            values = {
+                'U':U, 'H':H, 'S*T (el)':S_el, 'S*T (vib)':S_vib,
+                'S*T (trans)':S_trans, 'qrot':qrot, 'rot #':rot_num}
 
         return values
     
