@@ -18,7 +18,7 @@ class Analysis():
         self.logfile = IO('whaler.log', self.loc)
         self.states = ['S', 'T', 'P', 'D', 'Q']
         self.thermvals = [
-            'U', 'H', 'S (el)', 'S (vib)', 'S (trans)', 'qrot', 'rot #']
+            'U', 'H', 'S*T (el)', 'S*T (vib)', 'S*T (trans)', 'qrot', 'rot #']
         elnums = [1, 3, 5, 2, 4]
         self.statekey = {
             self.states[i]:elnums[i] for i in range(len(elnums))}
@@ -57,10 +57,6 @@ class Analysis():
                 pass
             data = self.gEs
             message = "optimization energies and ground states"
-        elif type == "cruderxn":
-            out = custom_out
-            data = custom_data
-            message = "crude reaction energies"
         elif type == "thermo":
             out = self.thermo_out
             try:
@@ -70,6 +66,10 @@ class Analysis():
                 pass
             data = self.therm_Es
             message = "thermodynamic values"
+        elif type == "N2act":
+            out = custom_out
+            data = custom_data
+            message = "reaction energies"
         else:
             raise
         
@@ -353,8 +353,8 @@ class Analysis():
         qrot = extr(lines[therm_start+68])[0]
         
         values = {
-            'U':U, 'H':H, 'S (el)':S_el, 'S (vib)':S_vib,
-            'S (trans)':S_trans, 'qrot':qrot, 'rot #':rot_num}
+            'U':U, 'H':H, 'S*T (el)':S_el, 'S*T (vib)':S_vib,
+            'S*T (trans)':S_trans, 'qrot':qrot, 'rot #':rot_num}
 
         return values
     

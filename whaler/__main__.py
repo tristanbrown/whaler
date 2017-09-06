@@ -37,7 +37,9 @@ def main(args=None):
     elif 'crudeN2' in args:
         A = custom.Reactions()
         A.write_crude_N2()
-    
+    elif 'N2act' in args:
+        A = custom.Reactions()
+        A.write_N2_act()
     
 if __name__ == "__main__":
     main()
