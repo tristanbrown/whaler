@@ -34,23 +34,6 @@ class Analysis():
         self.crude_out = "cruderxn_Es.csv"
         self.thermo_out = "thermo_Es.csv"
         
-    def groundstates_all(self):
-        """Compares the energies of each calculated spin state for a structure
-        and writes the energy differences as a table."""
-        
-        print("Calculating ground spin states.")
-        # Collect state energies from files. 
-        results = [self.get_states(struct) for struct in self.structs]
-        
-        # Construct dataframe. 
-        headers = np.array(self.states)
-        gEs = (
-            pd.DataFrame(data=results, index=self.structs, columns=headers))
-        
-        gEs['Ground State'] = gEs.idxmin(axis=1)
-        
-        return gEs
-        
     def write_data(self, type, custom_out=None, custom_data=None):
         # Choose the data type and output location. 
         
@@ -126,6 +109,23 @@ class Analysis():
             except OSError:
                 self._therm_Es = self.thermo_all()
             return self._therm_Es
+    
+    def groundstates_all(self):
+        """Compares the energies of each calculated spin state for a structure
+        and writes the energy differences as a table."""
+        
+        print("Calculating ground spin states.")
+        # Collect state energies from files. 
+        results = [self.get_states(struct) for struct in self.structs]
+        
+        # Construct dataframe. 
+        headers = np.array(self.states)
+        gEs = (
+            pd.DataFrame(data=results, index=self.structs, columns=headers))
+        
+        gEs['Ground State'] = gEs.idxmin(axis=1)
+        
+        return gEs
     
     def thermo_all(self):
         """Compares the energies of each calculated spin state for a structure
@@ -213,7 +213,7 @@ class Analysis():
         """
         """
         # Get the xyz coordinates for the input file. 
-        xyzfile, coords = self.get_xyz(struct, state, state + "geo")
+        xyzfile, coords = self.get_xyz(struct, state, "geo")
         
         # Make the filename.
         filename = xyzfile.split("geo")[0] + type + ".inp"
