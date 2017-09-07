@@ -19,6 +19,7 @@ class Reactions():
         # Physical constants.
         self.kB = 3.1668114/1000000
         self.temp = 298.15
+        self.kcal_eH = 627.509
     
     def write_crude_N2(self):
         """
@@ -110,7 +111,7 @@ class Reactions():
     def crude_N2_act(self):
         """Subtracts the crude (geo) energy of each M2(L)4 structure and N2 from
         the corresponding M2(L)4N and M2(L)4N2 structures, tabulating the
-        results.
+        results in kcal/mol.
         """
         # Make a dictionary of all structures with ground state energies. 
         short_gEs = self.A.gEs.dropna(axis=0, how='all')
@@ -123,7 +124,7 @@ class Reactions():
         nitride = []
         nitrogen = []
         
-        N2_E = self.A.finalE("N2_4geo.log", os.path.join(self.A.loc, "N2"))
+        N2_E = self.A.finalE("N2_4Sgeo.log", os.path.join(self.A.loc, "N2"))
         
         for k,v in struct_Es.items():
             structs.append(k)
@@ -142,12 +143,12 @@ class Reactions():
         rxn_Es = pd.DataFrame(data=results, index=structs, columns=headers)
         rxn_Es = rxn_Es.dropna(axis=0, how='all')
         
-        print(rxn_Es)
-        return rxn_Es
+        print(rxn_Es*self.kcal_eH)
+        return rxn_Es*self.kcal_eH
         
     def therm_N2_act(self):
         """Subtracts the thermodynamically-corrected energy of each M2(L)4
-        structure and N2 from the corresponding M2(L)4N and M2(L)4N2 structures, tabulating the results.
+        structure and N2 from the corresponding M2(L)4N and M2(L)4N2 structures, tabulating the results in kcal/mol.
         """
         # Calculate G for all of the structures.
         therm = self.A.therm_Es.dropna(axis=0, how='all')
@@ -195,8 +196,8 @@ class Reactions():
         rxn_Es = pd.DataFrame(data=results, index=structs, columns=headers)
         rxn_Es = rxn_Es.dropna(axis=0, how='all')
         
-        print(rxn_Es)
-        return rxn_Es
+        print(rxn_Es*self.kcal_eH)
+        return rxn_Es*self.kcal_eH
     
     def symm(self, structure):
         """Gives the symmetry numbers for N2, M2(L)4, M2(L)4N, and M2(L)4N2.

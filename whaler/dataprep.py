@@ -52,6 +52,7 @@ class IO():
             else:
                 raise e
         except KeyError:
+            print("Invalid file in %s directory." % structure)
             values = {}
             
         # Return values packed in a dictionary.
