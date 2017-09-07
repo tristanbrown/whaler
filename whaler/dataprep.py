@@ -35,18 +35,24 @@ class IO():
         
         try:
             iter, state, type = (zip(*ftypes.values()))
+            
             # Removes invalid and outdated files, marking the log. 
-            curriter = max(iter)
+            stateiter = {'S':0, 'T':0, 'P':0, 'D':0, 'Q':0}
+            for i in range(len(iter)):
+                if iter[i] > stateiter[state[i]]:
+                    stateiter[state[i]] = iter[i]
             
             values = {
                 v[1]:extractor(k, path) for (k,v) in ftypes.items() 
-                if v[0] == curriter and filecheck(k, path)}
+                if v[0] == stateiter[v[1]] and filecheck(k, path)}
                 
         except ValueError as e:
             if "not enough values" in str(e):
                 values = {}
             else:
                 raise e
+        except KeyError:
+            values = {}
             
         # Return values packed in a dictionary.
         return values
