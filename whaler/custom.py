@@ -24,17 +24,20 @@ class Reactions():
     def write_crude_N2(self):
         """
         """
-        self.A.write_data("cruderxn", self.crude_N2_out, self.crude_N2_act())
+        self.A.write_data(
+            "cruderxn", self.crude_N2_out, self.crude_N2_act(), format='%.2f')
     
     def write_N2_act(self):
         """
         """
-        self.A.write_data("N2act", self.N2_act_out, self.therm_N2_act())
+        self.A.write_data(
+            "N2act", self.N2_act_out, self.therm_N2_act(), format='%.2f')
     
     def write_N2_bonds(self):
         """
         """
-        self.A.write_data("bonds", self.N2_bond_out, self.MMN2_bonds())
+        self.A.write_data(
+            "bonds", self.N2_bond_out, self.MMN2_bonds(), format='%.3f')
     
     def MMN2_bonds(self):
         """Tabulates the M-M, M-N, and N-N bond lengths in M2(L)4, M2(L)4N, and 
@@ -53,7 +56,7 @@ class Reactions():
             
         N2_structs = {
             struct : short_gEs.loc[struct, 'Ground State']
-            for struct in short_gEs.index if struct[-2:] == 'N2'
+            for struct in short_gEs.index if struct[-3:] == '4N2'
             }
         
         # Acquire bond lengths. 
@@ -138,12 +141,12 @@ class Reactions():
                 nitrogen.append(np.nan)
         
         # Tabulate the data. 
-        headers = ['Add N', 'Add N2']
-        results = np.array([nitride, nitrogen]).T
+        headers = ['Add N2', 'Add N']
+        results = np.array([nitrogen, nitride]).T
         rxn_Es = pd.DataFrame(data=results, index=structs, columns=headers)
         rxn_Es = rxn_Es.dropna(axis=0, how='all')
         
-        print(rxn_Es*self.kcal_eH)
+        print(rxn_Es.sort_values('Add N')*self.kcal_eH)
         return rxn_Es*self.kcal_eH
         
     def therm_N2_act(self):
@@ -169,8 +172,6 @@ class Reactions():
         # G = H - T*S
         therm['G'] = therm['H'] - therm['S*T (tot)']
         
-        print(therm)
-        
         # Calculate the energy differences. 
         structs = []
         nitride = []
@@ -191,12 +192,12 @@ class Reactions():
                 nitrogen.append(np.nan)
         
         # Tabulate the data. 
-        headers = ['Add N', 'Add N2']
-        results = np.array([nitride, nitrogen]).T
+        headers = ['Add N2', 'Add N']
+        results = np.array([nitrogen, nitride]).T
         rxn_Es = pd.DataFrame(data=results, index=structs, columns=headers)
         rxn_Es = rxn_Es.dropna(axis=0, how='all')
         
-        print(rxn_Es*self.kcal_eH)
+        print(rxn_Es.sort_values('Add N')*self.kcal_eH)
         return rxn_Es*self.kcal_eH
     
     def symm(self, structure):

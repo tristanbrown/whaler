@@ -34,7 +34,8 @@ class Analysis():
         self.crude_out = "cruderxn_Es.csv"
         self.thermo_out = "thermo_Es.csv"
         
-    def write_data(self, type, custom_out=None, custom_data=None):
+    def write_data(self, type, custom_out=None,
+                        custom_data=None, format=None):
         # Choose the data type and output location. 
         
         if type == "gs":
@@ -72,7 +73,7 @@ class Analysis():
         
         # Write the data.
         
-        data.to_csv(os.path.join(self.loc, out))
+        data.to_csv(os.path.join(self.loc, out), float_format=format)
         print("Wrote {0} to {1}.".format(message, out))
     
     @property
