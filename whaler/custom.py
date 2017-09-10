@@ -25,13 +25,13 @@ class Reactions():
         """
         """
         self.A.write_data(
-            "cruderxn", self.crude_N2_out, self.crude_N2_act(), format='%.2f')
+            "cruderxn", self.crude_N2_out, self.crude_N2_act(), format='%.1f')
     
     def write_N2_act(self):
         """
         """
         self.A.write_data(
-            "N2act", self.N2_act_out, self.therm_N2_act(), format='%.2f')
+            "N2act", self.N2_act_out, self.therm_N2_act(), format='%.1f')
     
     def write_N2_bonds(self):
         """
@@ -99,9 +99,9 @@ class Reactions():
         
         # Construct the data table. 
         headers = [
-            'M-M gs', 'M-M es', 'M-MN2', 'M-MN', 'M2-N', 'M2-N2', 'M2N-N']
+            'M-M gs', 'M-M es', 'M-MN2', 'M2-N2', 'M2N-N', 'M-MN', 'M2-N']
         results = [
-            gs_M_M, es_M_M, gs_M_MN2, gs_M_MN, gs_M2_N, gs_M2_N2, gs_M2N_N]
+            gs_M_M, es_M_M, gs_M_MN2, gs_M2_N2, gs_M2N_N, gs_M_MN, gs_M2_N]
         
         resultsdict = {k:v for k,v in zip(headers, results)}
         
@@ -132,7 +132,7 @@ class Reactions():
         for k,v in struct_Es.items():
             structs.append(k)
             try:
-                nitride.append(struct_Es[k + 'N'] - v - N2_E/2)
+                nitride.append(struct_Es[k + 'N']*2 - v*2 - N2_E)
             except:
                 nitride.append(np.nan)
             try:
@@ -183,7 +183,7 @@ class Reactions():
             structs.append(base)
             base_G = therm.loc[base, 'G']
             try:
-                nitride.append(therm.loc[base + 'N', 'G'] - base_G - N2_G/2)
+                nitride.append(therm.loc[base + 'N', 'G']*2 - base_G*2 - N2_G)
             except KeyError:
                 nitride.append(np.nan)
             try:
