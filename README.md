@@ -30,5 +30,3 @@ The custom <params> available, relevant to the 2M2 + N2 -> 2M2N reaction are:
     
 All folders in the current directory will be considered in the analysis. 
 config.py is meant to be easily edited by the user. 
-
-# Options
