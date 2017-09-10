@@ -17,6 +17,7 @@ Currently, the package can be run from any directory as follows:
     >> whaler <params>
 
 The general <params> available are:
+<<<<<<< HEAD
     >> filegen (generation of geo.inp files and their parent directories)
     >> gs (calculation of ground states)
     >> freqinp (generation of frequency calculation input files from geo results)
@@ -27,6 +28,18 @@ The custom <params> available, relevant to the 2M2 + N2 -> 2M2N reaction are:
     >> N2bonds (calculation of relevant bond lengths)
     >> crudeN2 (calculation of reaction energies from geo.log energies)
     >> N2act (proper thermodynamic calculation of reaction energies)
+=======
+    filegen (generation of geo.inp files and their parent directories)
+    gs (calculation of ground states)
+    freqinp (generation of frequency calculation input files from geo results)
+    singleinp (like freqinp, but for single-point inputs)
+    thermo (extraction of thermodynamic parameters from freq output)
+    
+The custom <params> available, relevant to the 2M2 + N2 -> 2M2N reaction are:
+    N2bonds (calculation of relevant bond lengths)
+    crudeN2 (calculation of reaction energies from geo.log energies)
+    N2act (proper thermodynamic calculation of reaction energies)
+>>>>>>> c43f36a9c9a8c35196c4f9e27d84992f0b151a7a
     
 All folders in the current directory will be considered in the analysis. 
 config.py is meant to be easily edited by the user. 
